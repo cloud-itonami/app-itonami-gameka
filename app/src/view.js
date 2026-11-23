@@ -5,6 +5,11 @@ export const TAB_RUN = "run";
 export const TAB_SETTINGS = "settings";
 export const TAB_ABOUT = "about";
 
+/** Pinned Worker host. Single source of truth: app.js rpc() and all view
+ * labels use this; there is no user-editable base URL (Store catalog
+ * `operations` declares exactly this host). */
+export const WORKER_ORIGIN = "https://gameka.etzhayyim.com";
+
 export function tabsFor() {
   return [
     { id: TAB_PIPELINE, label: "パイプライン" },
@@ -33,11 +38,12 @@ export function panelTree(data, tabId) {
 }
 
 function pipelineTree(data) {
-  const base = data.baseUrl || "(未設定)";
+  const base = WORKER_ORIGIN;
+  const hasToken = data.hasToken === true;
   const stages = STAGES.map((s) => {
     const st = data.stages?.[s.id] || {};
     const dot = st.state === "ok" ? "status-dot ok" : st.state === "err" ? "status-dot err" : st.state === "busy" ? "status-dot busy" : "status-dot";
-    const stateText = st.state === "ok" ? "確認済み" : st.state === "err" ? `エラー: ${st.error || ""}` : st.state === "busy" ? "確認中" : "未確認";
+    const stateText = st.state === "ok" ? "確認済み" : st.state === "err" ? `エラー: ${st.error || ""}` : st.state === "busy" ? "確認中" : hasToken ? "未確認" : "未確認 (token 未設定)";
     return node("div", { class: "stage" }, [
       node("h3", {}, [node("span", { class: dot }, []), text(s.label)]),
       node("p", { class: "meta" }, [text(`${s.method} /xrpc/com.etzhayyim.gameka.${s.action} — ${s.hint}`)]),
@@ -47,17 +53,16 @@ function pipelineTree(data) {
   });
   return node("div", {}, [
     node("h2", {}, [text("パイプラインの状態")]),
-    node("p", { class: "muted" }, [text("工程の状態を WebView から Worker へ fetch して確認します。base URL が無い・到達できない場合は「未確認 / エラー」と表示し、成功を表示しません。")]),
+    node("p", { class: "muted" }, [text("工程の状態を WebView から Worker へ fetch して確認します。Bearer token が無い場合は「未確認 (token 未設定)」と表示し、成功を表示しません。到達できない場合はエラーと表示します。")]),
     node("p", {}, [node("button", { id: "refresh-status" }, [text("状態を確認")])]),
     ...stages,
   ]);
 }
 
 function runTree(data) {
-  const base = data.baseUrl || "(未設定)";
   return node("div", {}, [
     node("h2", {}, [text("パイプラインを実行")]),
-    node("p", { class: "muted" }, [text(`送信先 base: ${base}。応答はそのまま JSON で表示します。失敗はエラーとして表示します。`)]),
+    node("p", { class: "muted" }, [text(`送信先: ${WORKER_ORIGIN}。応答はそのまま JSON で表示します。失敗はエラーとして表示します。`)]),
     node("form", { class: "card", id: "form-propose" }, [
       node("h3", {}, [text("1. 企画 proposeGame")]),
       node("label", { for: "brief" }, [text("brief (2000 字まで)")]),
@@ -96,15 +101,13 @@ function runTree(data) {
 function settingsTree(data) {
   return node("div", {}, [
     node("h2", {}, [text("設定")]),
-    node("p", { class: "muted" }, [text("base URL と Bearer token は端末内 localStorage に保存されます。Worker / murakumo / broker の実 endpoint が無い間は空のままで構いません。")]),
+    node("p", { class: "muted" }, [text(`接続先は固定です (${WORKER_ORIGIN})。Bearer token は端末内 localStorage に保存されます。`)]),
     node("form", { class: "card", id: "form-settings" }, [
-      node("label", { for: "base-url" }, [text("base URL (例: https://gameka.etzhayyim.com)")]),
-      node("input", { id: "base-url", name: "base-url", type: "url", placeholder: "https://example.com" }, []),
-      node("label", { for: "token" }, [text("Bearer token (省略可)")]),
+      node("label", { for: "token" }, [text("Bearer token")]),
       node("input", { id: "token", name: "token", type: "password", autocomplete: "off" }, []),
       node("button", { type: "submit" }, [text("保存")]),
     ]),
-    node("p", { class: "meta" }, [text(`現在の base: ${data.baseUrl || "(未設定)"}`)]),
+    node("p", { class: "meta" }, [text(`現在の接続先: ${WORKER_ORIGIN} / token: ${data.hasToken ? "設定済み" : "未設定"}`)]),
     node("button", { id: "clear-settings" }, [text("設定を消去")]),
     node("h3", {}, [text("13 関数リファレンス")]),
     node("div", { class: "table-scroll" }, [
@@ -113,7 +116,7 @@ function settingsTree(data) {
         node("tbody", {}, [
           ...["proposeGame","generateGame","playtestGame","publishGame","tickStudio","getGameSpec","listGameSpecs","getBuildArtifact","listBuildArtifacts","getGameQa","listGameQas","getGameTitle","listGameTitles"].map((fn) => {
             const isList = fn.startsWith("list") || fn.startsWith("get");
-            return node("tr", {}, [node("td", {}, [text(fn)]), node("td", {}, [text(isList ? "GET" : "POST")]), node("td", {}, [text(`{base}/xrpc/com.etzhayyim.gameka.${fn}`)])]);
+            return node("tr", {}, [node("td", {}, [text(fn)]), node("td", {}, [text(isList ? "GET" : "POST")]), node("td", {}, [text(`${WORKER_ORIGIN}/xrpc/com.etzhayyim.gameka.${fn}`)])]);
           }),
         ]),
       ]),
@@ -132,7 +135,7 @@ function aboutTree(data) {
       node("dt", {}, [text("source")]), node("dd", {}, [text(identity.source || "app-itonami-gameka")]),
     ]),
     node("p", { class: "muted" }, [text("kotoba/ 13関数 + xrpc-adapter/ の参照実装に対する WebView 面。Worker / murakumo / broker への通信は fetch のみで、ホスト側に network 権限は持たせません。承認境界 (broker 承認、reader/studio 分担) は崩しません。")]),
-    node("p", { class: "muted" }, [text("実 endpoint が無い場合は設定で base URL を与えるまで「未確認」のままです。")]),
+    node("p", { class: "muted" }, [text(`Bearer token が無い場合は「未確認 (token 未設定)」のままです。接続先は固定 host ${WORKER_ORIGIN} です。`)]),
   ]);
 }
 

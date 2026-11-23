@@ -8,11 +8,13 @@ is the pipeline-status surface at 390x844 width.
 
 - パイプライン: 5 stages (propose / generate / playtest / publish / tick),
   each probed live via `GET /xrpc/com.etzhayyim.gameka.<action>` against the
-  configured base URL. Unset/unreachable shows 未確認/エラー, never a fake
+  pinned host `https://gameka.etzhayyim.com`. No token shows
+  未確認 (token 未設定); unreachable shows エラー, never a fake
   success.
 - 実行: forms to POST proposeGame / generateGame / playtestGame /
   publishGame / tickStudio; raw JSON response shown.
-- 設定: base URL + Bearer token persisted in localStorage; 13-function
+- 設定: Bearer token persisted in localStorage (the Worker host is pinned,
+  no user-editable base URL); 13-function
   reference table.
 - この app について: id / version / network statement.
 
@@ -22,8 +24,8 @@ This app is an **online** app. It requires `android.permission.INTERNET`
 (verified by `aapt2 dump permissions`: `uses-permission:
 name='android.permission.INTERNET'`, in addition to the Tauri
 `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`). The permission is needed
-because `src/app.js` calls `fetch()` from the WebView against a
-user-configured Worker / murakumo / broker base URL; without network the
+because `src/app.js` calls `fetch()` from the WebView against the
+pinned Worker host `https://gameka.etzhayyim.com`; without network the
 stage probes and execution forms do not function. It is **not** an
 offline/local app. Approval boundaries (broker consent,
 reader/studio split) are untouched; no host filesystem / shell / installer
