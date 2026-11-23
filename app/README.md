@@ -16,9 +16,18 @@ is the pipeline-status surface at 390x844 width.
   reference table.
 - この app について: id / version / network statement.
 
-Network: WebView `fetch()` only (INTERNET required). Approval boundaries
-(broker consent, reader/studio split) are untouched; no host filesystem /
-shell / installer permissions.
+## Online (not offline/local)
+
+This app is an **online** app. It requires `android.permission.INTERNET`
+(verified by `aapt2 dump permissions`: `uses-permission:
+name='android.permission.INTERNET'`, in addition to the Tauri
+`DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`). The permission is needed
+because `src/app.js` calls `fetch()` from the WebView against a
+user-configured Worker / murakumo / broker base URL; without network the
+stage probes and execution forms do not function. It is **not** an
+offline/local app. Approval boundaries (broker consent,
+reader/studio split) are untouched; no host filesystem / shell / installer
+permissions.
 
 ## Build
 
