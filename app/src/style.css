@@ -1,0 +1,264 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1a1a1a;
+  --muted: #5a5a5a;
+  --line: #d8d8d8;
+  --panel: #f5f5f5;
+  --accent: #1f4e79;
+  --focus: #0b5fff;
+  --ok: #1d6b3c;
+  --warn: #8a5a00;
+  --critical: #b00020;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141414;
+    --fg: #f0f0f0;
+    --muted: #b5b5b5;
+    --line: #3d3d3d;
+    --panel: #1e1e1e;
+    --accent: #9dc3ee;
+    --focus: #8ab4ff;
+    --ok: #7fd79a;
+    --warn: #ffcf5c;
+    --critical: #ff8a9a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.top {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 0;
+}
+
+.code {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.top h1 {
+  margin: 0.25rem 0 0;
+  font-size: 1.5rem;
+  line-height: 1.4;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  max-width: 60rem;
+  margin: 1rem auto 0;
+  padding: 0 1rem;
+  overflow-x: auto;
+}
+
+.tabs [role="tab"] {
+  flex: none;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--panel);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tabs [role="tab"][aria-selected="true"] {
+  background: var(--bg);
+  border-bottom: 1px solid var(--bg);
+  margin-bottom: -1px;
+  font-weight: bold;
+}
+
+main {
+  max-width: 60rem;
+  margin: 0 auto 3rem;
+  padding: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+main:focus {
+  outline-offset: 0.25rem;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+h3 {
+  font-size: 1.1rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.sample-note,
+.problem {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--panel);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+}
+
+dl {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) 1fr;
+  gap: 0.25rem 1rem;
+  margin: 1rem 0;
+}
+
+dt {
+  font-weight: bold;
+  min-width: 0;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+ul {
+  padding-left: 1.5rem;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 1rem 0;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 30rem;
+}
+
+th,
+td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+thead th {
+  background: var(--panel);
+  white-space: nowrap;
+}
+
+.tone-ok {
+  color: var(--ok);
+  font-weight: bold;
+}
+
+.tone-warn {
+  color: var(--warn);
+  font-weight: bold;
+}
+
+.tone-critical {
+  color: var(--critical);
+  font-weight: bold;
+}
+
+/* gameka: pipeline + run forms (390x844) */
+.stage {
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+  background: var(--panel);
+}
+.stage h3 { margin-top: 0; }
+.stage .meta { font-size: 0.875rem; color: var(--muted); overflow-wrap: anywhere; }
+.status-dot { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--muted); margin-right: 0.5rem; }
+.status-dot.ok { background: var(--ok); }
+.status-dot.err { background: var(--critical); }
+.status-dot.busy { background: var(--warn); }
+
+form.card {
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+form.card label { display: block; margin: 0.5rem 0 0.25rem; font-weight: bold; }
+form.card input, form.card textarea, form.card select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+form.card button {
+  margin-top: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.375rem;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+form.card button:disabled { opacity: 0.6; cursor: default; }
+pre.result {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 30rem) {
+  .top {
+    padding-top: 1rem;
+  }
+
+  .top h1 {
+    font-size: 1.25rem;
+  }
+
+  dl {
+    grid-template-columns: 1fr;
+  }
+}

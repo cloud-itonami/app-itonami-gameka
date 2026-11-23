@@ -1,0 +1,1 @@
+{"identifier":"gameka-local","description":"Read-only host info. Network is used by the WebView fetch() only; no filesystem, installer or shell permissions.","windows":["main"],"permissions":["allow-awai-host-info"]}
