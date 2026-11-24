@@ -1,8 +1,7 @@
-// Gameka Studio shell. The page talks to the pinned Worker host
-// (WORKER_ORIGIN in view.js) via fetch(); without a Bearer token the
-// pipeline panel only shows "未確認 (token 未設定)".
+// Gameka Studio shell. The page talks to a user-configured Worker base URL
+// via fetch(); when base URL is unset the app only shows "未確認".
 import data from "./data.js";
-import { STAGES, WORKER_ORIGIN, panelTree, tabsFor, toElement } from "./view.js";
+import { STAGES, panelTree, tabsFor, toElement } from "./view.js";
 
 const STORAGE_KEY = "gameka.studio.v1";
 const identity = data.identity || { id: "network.itonami.gameka", title: "Gameka Studio", source: "app-itonami-gameka" };
@@ -15,10 +14,8 @@ function readSettings() {
   try {
     const raw = storage?.getItem(STORAGE_KEY);
     const obj = raw ? JSON.parse(raw) : {};
-    // Migration: a legacy value may carry baseUrl; it is ignored (the host
-    // is pinned), the token is kept.
-    return { token: obj.token || "" };
-  } catch { return { token: "" }; }
+    return { baseUrl: (obj.baseUrl || "").replace(/\/+$/, ""), token: obj.token || "" };
+  } catch { return { baseUrl: "", token: "" }; }
 }
 function writeSettings(s) {
   try { storage?.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
@@ -29,7 +26,7 @@ const panel = document.getElementById("panel");
 let settings = readSettings();
 let stages = {};
 
-function state() { return { identity, version: data.version || "0.1.0", hasToken: Boolean(settings.token), stages }; }
+function state() { return { identity, version: data.version || "0.1.0", baseUrl: settings.baseUrl, stages }; }
 
 const tabs = tabsFor();
 let current = tabs[0].id;
@@ -52,7 +49,9 @@ function select(id) {
 }
 
 async function rpc(action, method, input, signal) {
-  const url = `${WORKER_ORIGIN}/xrpc/com.etzhayyim.gameka.${action}`;
+  const base = settings.baseUrl;
+  if (!base) throw new Error("base URL 未設定: 設定画面で Worker の base URL を保存してください");
+  const url = `${base}/xrpc/com.etzhayyim.gameka.${action}`;
   const headers = { "content-type": "application/json" };
   if (settings.token) headers["authorization"] = `Bearer ${settings.token}`;
   const res = await fetch(url, { method, headers, body: method === "POST" ? JSON.stringify(input || {}) : undefined, signal });
@@ -63,7 +62,7 @@ async function rpc(action, method, input, signal) {
 }
 
 async function refreshStatus() {
-  if (!settings.token) {
+  if (!settings.baseUrl) {
     stages = {};
     select("pipeline");
     return;
@@ -91,17 +90,19 @@ function wire() {
   if (refresh) refresh.addEventListener("click", () => refreshStatus());
   const settingsForm = document.getElementById("form-settings");
   if (settingsForm) {
+    const baseInput = document.getElementById("base-url");
     const tokenInput = document.getElementById("token");
+    if (baseInput) baseInput.value = settings.baseUrl;
     if (tokenInput) tokenInput.value = settings.token;
     settingsForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      settings = { token: (tokenInput.value || "").trim() };
+      settings = { baseUrl: (baseInput.value || "").trim().replace(/\/+$/, ""), token: (tokenInput.value || "").trim() };
       writeSettings(settings);
       select("settings");
     });
   }
   const clear = document.getElementById("clear-settings");
-  if (clear) clear.addEventListener("click", () => { settings = { token: "" }; writeSettings(settings); stages = {}; select("settings"); });
+  if (clear) clear.addEventListener("click", () => { settings = { baseUrl: "", token: "" }; writeSettings(settings); stages = {}; select("settings"); });
   const bind = (id, fn) => {
     const f = document.getElementById(id);
     if (f) f.addEventListener("submit", async (e) => {

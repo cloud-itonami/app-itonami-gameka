@@ -7,7 +7,7 @@ import { resolve, join } from "node:path";
 import { createHash } from "node:crypto";
 
 export const TAURI = "3.0.0-alpha.6";
-export const CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost https://gameka.etzhayyim.com; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'";
+export const CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src ipc: http://ipc.localhost https: http://localhost:* http://10.* http://192.168.* http://172.16.* http://172.17.* http://172.18.* http://172.19.* http://172.20.* http://172.21.* http://172.22.* http://172.23.* http://172.24.* http://172.25.* http://172.26.* http://172.27.* http://172.28.* http://172.29.* http://172.30.* http://172.31.*; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'";
 
 const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
